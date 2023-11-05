@@ -2,6 +2,7 @@
 import json
 import openai
 import requests
+import urllib.parse
 from flask import Flask, request, make_response
 from twilio.twiml.voice_response import VoiceResponse
 
@@ -25,110 +26,82 @@ def answer_call():
 @app.route("/transcribe", methods=['GET', 'POST'])
 def transcribe():
     # Create a TwiML Voice Response object to build the response
-    resp = VoiceResponse()
-
-    # Check for conversation cookie in the request
-    convo_cookie = request.cookies.get('convo')
+    twiml = VoiceResponse()
 
     # If no previous conversation is present, or if the conversation is empty, start the conversation
-    if not convo_cookie:
-        # Greet the user with a message
-        resp.say("Hey! I'm Joanna, a chatbot created using Twilio and ChatGPT. What would you like to talk about today?",
+    if not request.cookies.get('convo'):
+        # Greet the user with a message using AWS Polly neural voice
+        twiml.say("Hey! I'm Joanna, a chatbot created using Twilio and ChatGPT. What would you like to talk about today?",
                  voice='Polly.Joanna-Neural')
 
-    # Listen to the user's speech and pass the input to the /respond endpoint
-    resp.gather(input='speech',
-                speech_timeout='auto',
-                action='/respond',
-                method='POST')
+    # Listen to the user's speech and pass the input to the /respond Function
+    twiml.gather(
+        timeout='auto', # Automatically determine the end of user speech
+        model='experimental_conversations', # Use the conversation-based speech recognition model
+        input='speech', # Specify the speech as the input type
+        action='/respond', # Send the collected input to /respond
+    )
 
-    # Convert the TwiML to a string
-    twiml_response = str(resp)
+    # Create a Twilio Reponse object
+    response = make_response(str(twiml))
 
-    # Create a response object to add headers and cookies
-    response = make_response(twiml_response)
+    # Set the response content type to XML (TwiML)
     response.headers['Content-Type'] = 'application/xml'
 
+    # Set the response body to the generated TwiML
+
+
     # If no conversation cookie is present, set an empty conversation cookie
-    if not convo_cookie:
+    if not request.cookies.get('convo'):
         response.set_cookie('convo', '', path='/')
 
+    # Return the response to Twilio
     return response
 
 @app.route("/respond", methods=['POST'])
 def respond():
-    # Twilio VoiceResponse object to generate the TwiML
-    resp = VoiceResponse()
-
-    # Get the user's voice input from the request
-    voice_input = request.values.get('SpeechResult', '')
+    # Set up the Twilio VoiceResponse object to generate the TwiML
+    twiml = VoiceResponse()
 
     # Parse the cookie value if it exists
-    convo_cookie = request.cookies.get('convo', '[]')
-    conversation = json.loads(convo_cookie)
+    cookie_value = request.cookies.get('convo')
+    cookie_data = json.loads(cookie_value)
+
+    # Get the user's voice input from the event
+    voice_input = request.form.get('SpeechResult')
     
-    # Append user's input to the conversation history
+    # Create a conversation variable to store the dialog and the user's input to the conversation history
+    conversation = cookie_data['conversation']
     conversation.append(f"user: {voice_input}")
 
     # Get the AI's response based on the conversation history
-    ai_response = generate_ai_response(conversation)
+    ai_response = generate_ai_response(conversation.join(';'))
 
-    # Clean up the AI's response and remove certain prefixes if present
-    cleaned_ai_response = ai_response.replace("assistant:", "").strip()
+    # For some reason the OpenAI API loves to prepend the name or role in its responses, so let's remove 'assistant:' 'Joanna:', or 'user:' from the AI response if it's the first word
+    cleaned_ai_response = ai_response.replace("/^\w+:\s*/i", "").strip()
 
     # Add the AI's response to the conversation history
     conversation.append(f"assistant: {cleaned_ai_response}")
 
-    # Limit the conversation history to the last 10 messages
+    # Limit the conversation history to the last 10 messages; you can increase this if you want but keeping things short for this demonstration improves performance
     conversation = conversation[-10:]
 
-    # Use <Say> to read out the AI's response
-    resp.say(cleaned_ai_response, voice="Polly.Joanna-Neural")
+    # Generate some <Say> TwiML using the cleaned up AI response
+    twiml.say(cleaned_ai_response, voice='Polly.Joanna-Neural')
 
     # Redirect to the Function where the <Gather> is capturing the caller's speech
-    resp.redirect(url='/transcribe')
+    twiml.redirect(url='/transcribe', method='POST')
 
-    # Convert the TwiML to a string
-    twiml_response = str(resp)
-
-    # Create a Flask response object
-    response = make_response(twiml_response)
+    # Since we're using the response object to handle cookies we can't just pass the TwiML straight back to the callback, we need to set the appropriate header and return the TwiML in the body of the response
+    response = make_response(str(twiml))
     response.headers['Content-Type'] = 'application/xml'
 
-    # Update the conversation cookie
-    response.set_cookie('convo', json.dumps(conversation), path='/')
+    # Update the conversation history cookie with the response from the OpenAI API
+    new_cookie_value = urllib.parse.quote(json.dumps({'conversation': conversation}))
+    response.set_cookie('convo', new_cookie_value, path='/')
 
+    # Return the response to the handler
     return response
-
-def generate_ai_response(conversation):
-    # Format conversation for OpenAI
-    messages = format_conversation(conversation)
-    try:
-        # Create a chat completion using the OpenAI API
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            temperature=0.8,
-            max_tokens=100
-        )
-        return response.choices[0].message.content
-    except requests.exceptions.RequestException as e:
-        print(f"Error with OpenAI API: {e}")
-        return "I'm sorry, I'm having trouble thinking right now."
-
-def format_conversation(conversation):
-    # Convert the conversation history into the format expected by OpenAI API
-    messages = [{
-        'role': 'system',
-        'content': 'You are a creative, friendly, and amusing AI assistant named Joanna.',
-    }]
-    for line in conversation:
-        if line.startswith("user: "):
-            role = "user"
-        else:
-            role = "assistant"
-        messages.append({'role': role, 'content': line.split(": ", 1)[1]})
-    return messages
 
 if __name__ == "__main__":
     app.run(port=8000, debug=True)
