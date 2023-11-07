@@ -74,7 +74,6 @@ router.post("/respond", async (request, response) => {
   response.cookie("convo", newCookieValue, { path: "/" });
 
   // Return the response to the handler
-  // return callback(null, response);
   response.send(twiml.toString());
 
   // Function to generate the AI response based on the conversation history
