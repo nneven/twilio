@@ -1,83 +1,10 @@
 const express = require("express");
+const router = express.Router();
 const VoiceResponse = require("twilio").twiml.VoiceResponse;
-const urlencoded = require("body-parser").urlencoded;
-const cookieParser = require("cookie-parser");
 const { Configuration, OpenAIApi } = require("openai");
 
-require("dotenv").config();
-
-const app = express();
-const port = 3000;
-
-// Parse incoming POST params with Express middleware
-app.use(urlencoded({ extended: false }));
-app.use(cookieParser());
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-// Create a route that will handle Twilio webhook requests, sent as an
-// HTTP POST to /voice in our application
-app.post("/voice", (request, response) => {
-  // Get information about the incoming call, like the city associated
-  // with the phone number (if Twilio can discover it)
-  const city = request.body.FromCity;
-
-  // Use the Twilio Node.js SDK to build an XML response
-  const twiml = new VoiceResponse();
-  twiml.say(`Never gonna give you up ${city}.`);
-  twiml.play({}, "https://demo.twilio.com/docs/classic.mp3");
-
-  // Render the response as XML in reply to the webhook request
-  response.type("text/xml");
-  response.send(twiml.toString());
-});
-
-app.post("/transcribe", (request, response) => {
-  // Create a TwiML Voice Response object to build the response
-  const twiml = new VoiceResponse();
-
-  // If no previous conversation is present, or if the conversation is empty, start the conversation
-  if (!request.cookies.convo) {
-    // Greet the user with a message using AWS Polly Neural voice
-    twiml.say(
-      {
-        voice: "Polly.Joanna-Neural",
-      },
-      "Hey! I'm Joanna, a chatbot created using Twilio and ChatGPT. What would you like to talk about today?"
-    );
-  }
-
-  // Listen to the user's speech and pass the input to the /respond Function
-  twiml.gather({
-    speechTimeout: "auto", // Automatically determine the end of user speech
-    speechModel: "experimental_conversations", // Use the conversation-based speech recognition model
-    input: "speech", // Specify speech as the input type
-    action: "/respond", // Send the collected input to /respond
-  });
-
-  // Create a Twilio Response object
-  // const response = new Twilio.Response();
-
-  // Set the response content type to XML (TwiML)
-  response.appendHeader("Content-Type", "application/xml");
-
-  // Set the response body to the generated TwiML
-  // response.setBody(twiml.toString());
-
-  // If no conversation cookie is present, set an empty conversation cookie
-  if (!request.cookies.convo) {
-    // response.setCookie("convo", "", ["Path=/"]);
-    response.cookie("convo", "", { path: "/" });
-  }
-
-  // Return the response to Twilio
-  response.send(twiml.toString());
-});
-
 // Define the main function for handling requests
-app.post("/respond", async (request, response) => {
+router.post("/respond", async (request, response) => {
   // Set up the OpenAI API with the API key
   const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
@@ -246,6 +173,4 @@ app.post("/respond", async (request, response) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+module.exports = router;
