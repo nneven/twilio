@@ -1,6 +1,6 @@
 const express = require("express");
-const urlencoded = require("body-parser").urlencoded;
 const cookieParser = require("cookie-parser");
+const logger = require("morgan");
 
 require("dotenv").config();
 
@@ -10,9 +10,9 @@ const respondRouter = require("./routes/respond");
 const app = express();
 const port = 3000;
 
-// Parse incoming POST params with Express middleware
-app.use(urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(logger("dev"));
 
 app.use("/", transcribeRouter);
 app.use("/", respondRouter);
