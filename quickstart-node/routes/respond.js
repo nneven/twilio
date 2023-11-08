@@ -6,10 +6,6 @@ const OpenAI = require("openai");
 // Define the main function for handling requests
 router.post("/respond", async (request, response) => {
   // Set up the OpenAI API with the API key
-  // const configuration = new Configuration({
-  //   apiKey: process.env.OPENAI_API_KEY,
-  // });
-  // const openai = new OpenAIApi(configuration);
   const openai = new OpenAI();
 
   // Set up the Twilio VoiceResponse object to generate the TwiML
