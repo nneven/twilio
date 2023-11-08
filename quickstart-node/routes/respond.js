@@ -70,8 +70,7 @@ router.post("/respond", async (request, response) => {
       conversation,
     })
   );
-  // response.setCookie("convo", newCookieValue, ["Path=/"]);
-  response.cookie("convo", newCookieValue, { path: "/" });
+  response.cookie("convo", newCookieValue);
 
   // Return the response to the handler
   response.send(twiml.toString());
@@ -111,8 +110,8 @@ router.post("/respond", async (request, response) => {
           `/transcribe`
         );
         response.appendHeader("Content-Type", "application/xml"); // Set the Content-Type header of the response to "application/xml"
-        response.setBody(twiml.toString()); // Set the body of the response to the XML string representation of the TwiML response
-        return callback(null, response); // Return the response to the callback function
+        response.send(twiml.toString()); // Set the body of the response to the XML string representation of the TwiML response
+        // return callback(null, response); // Return the response to the callback function
       }
       return completion.data.choices[0].message.content;
     } catch (error) {
@@ -134,8 +133,8 @@ router.post("/respond", async (request, response) => {
           `/transcribe`
         );
         response.appendHeader("Content-Type", "application/xml"); // Set the Content-Type header of the response to "application/xml"
-        response.setBody(twiml.toString()); // Set the body of the response to the XML string representation of the TwiML response
-        return callback(null, response); // Return the response to the callback function
+        response.send(twiml.toString()); // Set the body of the response to the XML string representation of the TwiML response
+        // return callback(null, response); // Return the response to the callback function
       } else {
         console.error("Error during OpenAI API request:", error);
         throw error;

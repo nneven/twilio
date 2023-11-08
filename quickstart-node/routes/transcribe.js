@@ -36,8 +36,7 @@ router.post("/transcribe", (request, response) => {
 
   // If no conversation cookie is present, set an empty conversation cookie
   if (!request.cookies.convo) {
-    // response.setCookie("convo", "", ["Path=/"]);
-    response.cookie("convo", "", { path: "/" });
+    response.cookie("convo", "");
   }
 
   // Return the response to Twilio
