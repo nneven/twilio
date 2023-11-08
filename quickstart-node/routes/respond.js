@@ -1,15 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const VoiceResponse = require("twilio").twiml.VoiceResponse;
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 
 // Define the main function for handling requests
 router.post("/respond", async (request, response) => {
   // Set up the OpenAI API with the API key
-  const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-  const openai = new OpenAIApi(configuration);
+  // const configuration = new Configuration({
+  //   apiKey: process.env.OPENAI_API_KEY,
+  // });
+  // const openai = new OpenAIApi(configuration);
+  const openai = new OpenAI();
 
   // Set up the Twilio VoiceResponse object to generate the TwiML
   const twiml = new VoiceResponse();
@@ -84,7 +85,7 @@ router.post("/respond", async (request, response) => {
   // Function to create a chat completion using the OpenAI API
   async function createChatCompletion(messages) {
     try {
-      const completion = await openai.createChatCompletion({
+      const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: messages,
         temperature: 0.8, // Controls the randomness of the generated responses. Higher values (e.g., 1.0) make the output more random and creative, while lower values (e.g., 0.2) make it more focused and deterministic. You can adjust the temperature based on your desired level of creativity and exploration.
@@ -113,7 +114,7 @@ router.post("/respond", async (request, response) => {
         response.send(twiml.toString()); // Set the body of the response to the XML string representation of the TwiML response
         // return callback(null, response); // Return the response to the callback function
       }
-      return completion.data.choices[0].message.content;
+      return completion.choices[0].message.content;
     } catch (error) {
       // Check if the error is a timeout error
       if (error.code === "ETIMEDOUT" || error.code === "ESOCKETTIMEDOUT") {
