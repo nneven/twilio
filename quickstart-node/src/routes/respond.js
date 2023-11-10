@@ -25,7 +25,7 @@ router.post("/respond", async (request, response) => {
 
   // Create a conversation variable to store the dialog and the user's input to the conversation history
   const conversation = cookieData?.conversation || [];
-  conversation.push(`user: ${voiceInput}`);
+  conversation.push(voiceInput);
 
   // Get the AI's response based on the conversation history
   const aiResponse = await generateAIResponse(conversation.join(";"));
@@ -34,7 +34,7 @@ router.post("/respond", async (request, response) => {
   const cleanedAiResponse = aiResponse.replace(/^\w+:\s*/i, "").trim();
 
   // Add the AI's response to the conversation history
-  conversation.push(`assistant: ${aiResponse}`);
+  conversation.push(aiResponse);
 
   // Limit the conversation history to the last 10 messages; you can increase this if you want but keeping things short for this demonstration improves performance
   while (conversation.length > 10) {

@@ -7,7 +7,7 @@ const openai = new OpenAI();
 
 // Function to generate the AI response based on the conversation history
 export async function generateAIResponse(conversation) {
-  const messages = formatConversation(conversation);
+  const messages = await formatConversation(conversation);
   return await createChatCompletion(messages);
   // return await agent(messages[messages.length - 1].content);
 }
@@ -74,22 +74,20 @@ async function createChatCompletion(messages) {
 }
 
 // Function to format the conversation history into a format that the OpenAI API can understand
-function formatConversation(conversation) {
-  let isAI = true;
+async function formatConversation(conversation) {
+  const todaysDate = new Date().toLocaleString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+  const availableTimes = JSON.stringify(await getTimeSlots());
   const messages = [
     {
       role: "system",
       content: `You are an AI assistant named Joanna with expertise in calendar management and scheduling.
-          Your goal is to assist users in finding suitable times for meetings and provide alternatives if conflicts arise.
-          When providing available times, provide ranges instead of listing individual slots.
-          Today's date is ${new Date().toLocaleString("en-US", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}.
-          The available time slots are as follows: ${JSON.stringify(
-            getTimeSlots()
-          )}`,
+                Your goal is to assist users in finding suitable times for meetings and provide alternatives if conflicts arise.
+                When providing available times, provide ranges instead of listing individual slots.
+                Today's date is ${todaysDate}. The available time slots are as follows:\n${availableTimes}`,
     },
     {
       role: "user",
@@ -99,6 +97,7 @@ function formatConversation(conversation) {
   ];
 
   // Iterate through the conversation history and alternate between 'assistant' and 'user' roles
+  let isAI = false;
   for (const message of conversation.split(";")) {
     const role = isAI ? "assistant" : "user";
     messages.push({
@@ -107,5 +106,6 @@ function formatConversation(conversation) {
     });
     isAI = !isAI;
   }
+  console.log(messages);
   return messages;
 }
