@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 
+import { getTimeSlots } from "./calendly.js";
+
 // Set up the OpenAI API with the API key
 const openai = new OpenAI();
 
@@ -86,7 +88,7 @@ function formatConversation(conversation) {
             day: "numeric",
           })}.
           The available time slots are as follows: ${JSON.stringify(
-            condenseTimeSlots(timeSlots)
+            getTimeSlots()
           )}`,
     },
     {

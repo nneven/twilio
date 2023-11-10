@@ -70,13 +70,16 @@ function condenseTimeSlots(timeSlots) {
     const datePart = slot.start_time.split("T")[0];
     const dateKey = `${dayName}, ${datePart}`;
 
-    if (!condensed[dateKey]) {
-      condensed[dateKey] = [];
-    }
+    if (!condensed[dateKey]) condensed[dateKey] = [];
 
     condensed[dateKey].push(time);
   });
 
-  console.log(condensed);
   return condensed;
+}
+
+export async function getTimeSlots() {
+  const availableTimes = (await getAvailableTimes()).collection;
+  const timeSlots = condenseTimeSlots(availableTimes);
+  return timeSlots;
 }
