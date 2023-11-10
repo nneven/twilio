@@ -80,6 +80,12 @@ function condenseTimeSlots(timeSlots) {
 
 export async function getTimeSlots() {
   const availableTimes = (await getAvailableTimes()).collection;
+  console.log(availableTimes);
   const timeSlots = condenseTimeSlots(availableTimes);
+  console.log(timeSlots);
   return timeSlots;
 }
+
+(async () => {
+  getTimeSlots();
+})();
