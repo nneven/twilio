@@ -1,6 +1,8 @@
-const express = require("express");
-const router = express.Router();
-const VoiceResponse = require("twilio").twiml.VoiceResponse;
+import { Router } from "express";
+import twilio from "twilio";
+
+const router = Router();
+const { VoiceResponse } = twilio.twiml;
 
 router.post("/transcribe", (request, response) => {
   // Create a TwiML Voice Response object to build the response
@@ -13,7 +15,7 @@ router.post("/transcribe", (request, response) => {
       {
         voice: "Polly.Joanna-Neural",
       },
-      "Hey! I'm Joanna, a chatbot created using Twilio and ChatGPT. What would you like to talk about today?"
+      "Hey! I'm Joanna, how can I assist you today?"
     );
   }
 
@@ -43,4 +45,4 @@ router.post("/transcribe", (request, response) => {
   response.send(twiml.toString());
 });
 
-module.exports = router;
+export default router;
