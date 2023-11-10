@@ -84,15 +84,11 @@ async function formatConversation(conversation) {
   const messages = [
     {
       role: "system",
-      content: `You are an AI assistant named Joanna with expertise in calendar management and scheduling.
-                Your goal is to assist users in finding suitable times for meetings and provide alternatives if conflicts arise.
+      content: `You are Joanna, an expert in calendar management and scheduling appointments.
+                Your goal is to assist users in finding suitable times and provide alternatives if conflicts arise.
+                You are having a conversation over the telephone so provide concise but helpful responses.
                 When providing available times, provide ranges instead of listing individual slots.
                 Today's date is ${todaysDate}. The available time slots are as follows:\n${availableTimes}`,
-    },
-    {
-      role: "user",
-      content:
-        "We are having a conversation over the telephone so please provide helpful but concise responses.",
     },
   ];
 
