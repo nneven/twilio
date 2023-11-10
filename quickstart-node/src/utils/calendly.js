@@ -80,12 +80,22 @@ function condenseTimeSlots(timeSlots) {
 
 export async function getTimeSlots() {
   const availableTimes = (await getAvailableTimes()).collection;
-  console.log(availableTimes);
   const timeSlots = condenseTimeSlots(availableTimes);
-  console.log(timeSlots);
   return timeSlots;
 }
 
-(async () => {
-  getTimeSlots();
-})();
+export async function getSchedulingUrl(date, time) {
+  const dateTime = new Date(`${date} ${time}`);
+  const utcDateTime = dateTime.toISOString().split(".")[0] + "Z";
+  const availableTimes = (await getAvailableTimes()).collection;
+  const timeSlot = availableTimes.find(
+    (slot) => slot.start_time === utcDateTime
+  );
+  return timeSlot.scheduling_url;
+}
+
+// (async () => {
+//   getTimeSlots();
+// })();
+
+console.log(await getSchedulingUrl("2023-11-13", "10:00 AM"));

@@ -18,7 +18,7 @@ async function createChatCompletion(messages) {
     const completion = await openai.chat.completions.create({
       model: "gpt-4-1106-preview",
       messages: messages,
-      temperature: 0.1, // Controls the randomness of the generated responses. Higher values (e.g., 1.0) make the output more random and creative, while lower values (e.g., 0.2) make it more focused and deterministic. You can adjust the temperature based on your desired level of creativity and exploration.
+      temperature: 0.1, // Controls the randomness of the generated responses. Higher values (e.g., 1.0) make the output more random and creative, while lower values (e.g., 0.2) make it more focused and deterministic.
       max_tokens: 420, // You can adjust this number to control the length of the generated responses. Keep in mind that setting max_tokens too low might result in responses that are cut off and don't make sense.
       // top_p: 0.9, Set the top_p value to around 0.9 to keep the generated responses focused on the most probable tokens without completely eliminating creativity. Adjust the value based on the desired level of exploration.
       // n: 1, Specifies the number of completions you want the model to generate. Generating multiple completions will increase the time it takes to receive the responses.
@@ -88,6 +88,7 @@ async function formatConversation(conversation) {
                 Your goal is to assist users in finding suitable times and provide alternatives if conflicts arise.
                 You are having a conversation over the telephone so provide concise but helpful responses.
                 When providing available times, provide ranges instead of listing individual slots.
+                To schedule an appointment, you must get the user's name and email address. Ask the user to spell it out to avoid errors.
                 Today's date is ${todaysDate}. The available time slots are as follows:\n${availableTimes}`,
     },
   ];
