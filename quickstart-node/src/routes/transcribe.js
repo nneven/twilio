@@ -21,10 +21,10 @@ router.post("/transcribe", (request, response) => {
 
   // Listen to the user's speech and pass the input to the /respond Function
   twiml.gather({
+    action: "/respond", // Send the collected input to /respond
+    input: "speech", // Specify speech as the input type
     speechTimeout: "auto", // Automatically determine the end of user speech
     speechModel: "experimental_conversations", // Use the conversation-based speech recognition model
-    input: "speech", // Specify speech as the input type
-    action: "/respond", // Send the collected input to /respond
   });
 
   // Create a Twilio Response object

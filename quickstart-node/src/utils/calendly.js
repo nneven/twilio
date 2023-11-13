@@ -1,5 +1,7 @@
 import dotenv from "dotenv";
 
+import { scheduleEvent } from "./puppeteer.js";
+
 dotenv.config();
 
 async function getCurrentUser() {
@@ -94,8 +96,30 @@ export async function getSchedulingUrl(date, time) {
   return timeSlot.scheduling_url;
 }
 
+export async function scheduleMeeting(date, time, name, email) {
+  console.log(date, time, name, email);
+  const schedulingUrl = await getSchedulingUrl(date, time);
+  console.log(schedulingUrl);
+  const didSchedule = await scheduleEvent(schedulingUrl, name, email);
+  if (didSchedule) {
+    return "You are scheduled.";
+  } else {
+    return "You are not scheduled.";
+  }
+}
+
 // (async () => {
 //   getTimeSlots();
 // })();
 
-console.log(await getSchedulingUrl("2023-11-13", "10:00 AM"));
+// console.log(await getSchedulingUrl("2023-11-13", "10:00 AM"));
+
+// (async () => {
+//   const response = await scheduleMeeting(
+//     "2023-11-14",
+//     "10:00 AM",
+//     "Nico Neven",
+//     "niconeven@gmail.com"
+//   );
+//   console.log(response);
+// })();
