@@ -1,6 +1,7 @@
 import puppeteer from "puppeteer";
 
 export async function scheduleEvent(url, fullName, email) {
+  // const browser = await puppeteer.launch({headless: 'new'});
   const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
 
@@ -12,13 +13,6 @@ export async function scheduleEvent(url, fullName, email) {
 
   await page.waitForSelector("#email_input");
   await page.type("#email_input", email);
-
-  // await page.waitForSelector(
-  //   "button.b1hdxvdx.u1xbh6v5.b1qhbqhv.d1bkmipt.smqpqx8.f41u73q"
-  // );
-  // await page.click(
-  //   "button.b1hdxvdx.u1xbh6v5.b1qhbqhv.d1bkmipt.smqpqx8.f41u73q"
-  // );
 
   await page.waitForSelector('button[type="submit"]');
   await page.click('button[type="submit"]');
